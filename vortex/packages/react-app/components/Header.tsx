@@ -18,7 +18,10 @@ export default function Header() {
   }, []);
 
   return (
-    <Disclosure as="nav" className="bg-colors-primary border-b border-black">
+    <Disclosure
+      as="nav"
+      className="bg-colors-primary border-b border-black z-[9999] fixed top-0 left-0 w-full"
+    >
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">

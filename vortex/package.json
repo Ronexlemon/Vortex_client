@@ -26,5 +26,16 @@
   "keywords": [
     "celo-composer",
     "celo"
-  ]
+  ],
+  "dependencies": {
+    "@celo/contractkit": "^3.2.0",
+    "@celo/react-celo": "^5.0.4",
+    "@headlessui/react": "^2.2.0",
+    "axios": "^1.7.8",
+    "react-router-dom": "^7.0.1",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0"
+  }
 }
