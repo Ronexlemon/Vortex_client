@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
 import axios from "axios";
+import "./../styles/Spin.css"; // Import global stylesheet
 
 const Spin: React.FC = () => {
   const [selectedBetAmount, setSelectedBetAmount] = useState<number>(3);
@@ -129,81 +130,60 @@ const Spin: React.FC = () => {
   };
 
   return (
-    
-
-    
     <div className="relative w-full h-screen overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
-        <canvas
-          ref={canvasRef}
-          className="absolute w-full h-full"
-          style={{ marginTop: '50px' }}
-        ></canvas>
+      
+      <div className="canvas-container">
+        <canvas ref={canvasRef} className="three-canvas" style={{ marginTop: '50px' }}></canvas>
       </div>
 
-      <h1 className="text-4xl font-bold text-center mt-8">Spin to Win</h1>
+      <h1 className="title">Spin to Win</h1>
 
-      <div className="flex justify-center mt-4">
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={() => setSelectedBetAmount((prev) => (prev === 3 ? 6 : 3))}
-        >
+      <div className="dropdown">
+        <button className="button" onClick={() => setSelectedBetAmount((prev) => (prev === 3 ? 6 : 3))}>
           Select Bet Amount: {selectedBetAmount}
         </button>
       </div>
 
-      <div className="flex justify-center mt-6">
-        <div className="relative">
-          <div
-            className="w-64 h-64 border-4 border-black rounded-full overflow-hidden"
-            ref={wheelRef}
-          >
+      <div className="wheel-container">
+        <div className="wheel-wrapper">
+          <div className="wheel" ref={wheelRef}>
             {prizes.map((prize, index) => (
               <div
                 key={index}
-                className="absolute w-full h-full flex justify-center items-center"
+                className="segment"
                 style={{
                   transform: `rotate(${(360 / prizes.length) * index}deg) skewY(-30deg)`,
                   backgroundColor: generateSegmentColors(index),
                 }}
               >
-                <span className="text-white">{prize.name}</span>
+                <span>{prize.name}</span>
               </div>
             ))}
           </div>
-          <button
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-2 rounded-full"
-            onClick={spinWheel}
-            disabled={isSpinning}
-          >
+          <button className="spin-button" onClick={spinWheel} disabled={isSpinning}>
             SPIN
           </button>
         </div>
       </div>
 
       {showPrizeModal && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <h1 className="text-2xl font-bold">{prizeName}</h1>
-            <button
-              className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
-              onClick={() => setShowPrizeModal(false)}
-            >
-              Close
-            </button>
+        <div className={`modal ${showPrizeModal ? "is-active" : ""}`}>
+          <div className="modal-background"></div>
+          <div className="modal-content">
+            <div className="box">
+              <h1 className="prize-title">{prizeName}</h1>
+            </div>
           </div>
+          <button className="modal-close" onClick={() => setShowPrizeModal(false)}></button>
         </div>
       )}
 
       {showInstructionsOverlay && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <div>Follow the instructions...</div>
-          </div>
+        <div className="instructions-overlay">
+          <div className="instruction-box">Follow the instructions...</div>
         </div>
       )}
     </div>
-
   );
 };
 
