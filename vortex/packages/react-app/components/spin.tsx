@@ -161,6 +161,7 @@ const Spin: React.FC = () => {
             ))}
           </div>
           <button className="spin-button" onClick={spinWheel} disabled={isSpinning}>
+            <div className="pointer"></div>
             SPIN
           </button>
         </div>
