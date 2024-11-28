@@ -129,17 +129,17 @@ const Spin: React.FC = () => {
   };
 
   return (
-    <div>
+    
 
     
     <div className="relative w-full h-screen overflow-hidden">
-      {/* <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+      <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
         <canvas
           ref={canvasRef}
           className="absolute w-full h-full"
           style={{ marginTop: '50px' }}
         ></canvas>
-      </div> */}
+      </div>
 
       <h1 className="text-4xl font-bold text-center mt-8">Spin to Win</h1>
 
@@ -203,7 +203,7 @@ const Spin: React.FC = () => {
         </div>
       )}
     </div>
-    </div>
+
   );
 };
 
