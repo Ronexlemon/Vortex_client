@@ -10,6 +10,7 @@ interface SpinProps {
   //signer: ethers.Signer;
   userAddress:string;
 }
+import { useWriteContract } from "wagmi";
 
 const Spin = ({ userAddress }: SpinProps) => {
   const [selectedBetAmount, setSelectedBetAmount] = useState<number>(3);
@@ -175,6 +176,7 @@ const Spin = ({ userAddress }: SpinProps) => {
             ))}
           </div>
           <button className="spin-button" onClick={spinWheel} disabled={isSpinning}>
+            <div className="pointer"></div>
             SPIN
           </button>
         </div>
