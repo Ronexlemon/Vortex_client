@@ -5,10 +5,7 @@ import { type Config, useConnectorClient } from 'wagmi'
 import { createWalletClient, custom } from 'viem'
 import { celoAlfajores } from 'viem/chains'
  
-export const walletClient = createWalletClient({
-  chain: celoAlfajores,
-  transport: custom(window.ethereum!),
-})
+
 
 export function clientToSigner(client: Client<Transport, Chain, Account>) {
   const { account, chain, transport } = client

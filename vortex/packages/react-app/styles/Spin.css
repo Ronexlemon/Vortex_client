@@ -234,7 +234,7 @@ z-index: 1000; /* Ensure modal is on top */
 }
 
 .modal {
-z-index: 3; /* Ensure modal is below dropdown but above particles */
+z-index: 3000; /* Ensure modal is below dropdown but above particles */
 width: 90vw; /* Use percentage width to allow responsiveness */
 max-width: 600px; /* Cap the max width */
 padding: 20px; /* Add some padding to avoid content touching edges */

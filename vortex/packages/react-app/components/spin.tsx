@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
 import axios from "axios";
 import "./../styles/Spin.css"; // Import global stylesheet
-import SpinEndPoint from "@/app/url/vortex";
+import { SpinEndPoinSigner,SpinEndPoint } from "@/app/url/vortex";
 //import { ethers } from "ethers";
 import SignTx from "@/app/config/signtx";
 interface SpinProps {
@@ -32,13 +32,22 @@ const Spin = ({ userAddress }: SpinProps) => {
   const wheelRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const mockPrizes = [
+    { id: 1, name: "X2", value: "2.00", probability: 0.0 },
+    { id: 2, name: "X5", value: "5.00", probability: 0.0 },
+    { id: 3, name: "X10", value: "10.00", probability: 0.0 },
+    { id: 4, name: "X0.1", value: "0.10", probability: 0.0 },
+    { id: 5, name: "X50", value: "50.00", probability: 0.0 },
+  ];
+
   useEffect(() => {
     const fetchPrizes = async () => {
       try {
         const response = await axios.get("/api/prizes/");
         setPrizes(response.data);
       } catch (error) {
-        console.error("Error fetching prizes:", error);
+        console.error("Error fetching prizes, using mock data:", error);
+        setPrizes(mockPrizes);
       }
     };
 
@@ -113,40 +122,50 @@ const Spin = ({ userAddress }: SpinProps) => {
       //   bet_amount: selectedBetAmount,
       // });
       const signtx = await SignTx("1",userAddress)
-      const response = await SpinEndPoint({amount:1,userAddress:userAddress,signedTx:signtx as unknown as string})
+      const response = await SpinEndPoinSigner({signer:signtx as any,amount:1})
+      //const response = await SpinEndPoint({amount:1,userAddress:userAddress,signedTx:signtx as unknown as string})
       const result = response.data;
       console.log("result is resulting",result)
       alert(`Result is${result}`)
 
       const winningPrize = response.data.winning_prize;
-      const anglePerSegment = 360 / prizes.length;
-      const prizeIndex = prizes.findIndex((prize) => prize.name === winningPrize.name);
+      handleSpinOutcome(winningPrize);
+    } catch (error) {
+      console.error("Error during spin, using mock data:", error);
+      alert(`Result is error ${error}`)
+      const fallbackPrize = mockPrizes[Math.floor(Math.random() * mockPrizes.length)];
+      handleSpinOutcome(fallbackPrize);
+    }
+  };
 
-      const randomTurns = Math.floor(Math.random() * 15) + 20;
-      const winningAngle = randomTurns * 360 + anglePerSegment * prizeIndex;
+  const handleSpinOutcome = (winningPrize: any) => {
+    const anglePerSegment = 360 / prizes.length;
+    const prizeIndex = prizes.findIndex((prize) => prize.name === winningPrize.name);
 
-      setSpinAngle(winningAngle);
+    const randomTurns = Math.floor(Math.random() * 15) + 20;
+    const winningAngle = randomTurns * 360 + anglePerSegment * prizeIndex;
 
-      if (wheelRef.current) {
-        wheelRef.current.style.transition = "transform 5s ease-out";
-        wheelRef.current.style.transform = `rotate(${winningAngle}deg)`;
-      }
+    setSpinAngle(winningAngle);
+
+    if (wheelRef.current) {
+      wheelRef.current.style.transition = "transform 5s ease-out";
+      wheelRef.current.style.transform = `rotate(${winningAngle}deg)`;
+    }
+
+    setTimeout(() => {
+      setPrizeName(winningPrize.name);
+      setShowPrizeModal(true);
 
       setTimeout(() => {
         setPrizeName(winningPrize.name);
         setShowPrizeModal(true);
         setIsSpinning(false);
       }, 5000);
-    } catch (error) {
-      console.error("Error during spin is sping:", error);
-      alert(`Result is error ${error}`)
-      setIsSpinning(false);
-    }
-  };
+    } )
+  }
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      
       <div className="canvas-container">
         <canvas ref={canvasRef} className="three-canvas" style={{ marginTop: '50px' }}></canvas>
       </div>
@@ -183,16 +202,52 @@ const Spin = ({ userAddress }: SpinProps) => {
       </div>
 
       {showPrizeModal && (
-        <div className={`modal ${showPrizeModal ? "is-active" : ""}`}>
-          <div className="modal-background"></div>
-          <div className="modal-content">
-            <div className="box">
-              <h1 className="prize-title">{prizeName}</h1>
-            </div>
-          </div>
-          <button className="modal-close" onClick={() => setShowPrizeModal(false)}></button>
-        </div>
-      )}
+  <div
+    className="modal is-active"
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      zIndex: 9999,
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <div
+      className="modal-content"
+      style={{
+        width: "clamp(50%, 70%, 80%)",
+        maxWidth: "800px",
+      }}
+    >
+      <div
+        className="box"
+        style={{
+          textAlign: "center",
+          padding: "2rem",
+          borderRadius: "10px",
+        }}
+      >
+        <h1
+          className="prize-title"
+          style={{
+            color: "gold",
+            fontSize: "clamp(2rem, 5vw, 4rem)",
+            fontWeight: "bold",
+          }}
+        >
+          {prizeName}
+        </h1>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
       {showInstructionsOverlay && (
         <div className="instructions-overlay">

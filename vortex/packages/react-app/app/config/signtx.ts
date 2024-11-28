@@ -3,7 +3,7 @@ import { parseEther} from "ethers-v6";
 import erc20Abi from "../abi/erc20.json"; // Ensure ABI is correct
 import { cusdContractAddress, VortexAddress } from "./signer";
 import { useEthersSigner } from "./signer";
-import { walletClient } from "./signer";
+
  
 
 
@@ -30,30 +30,31 @@ const SignTx = async ( amount: string,userAddress:string) => {
     
     
   try {
-    // Create a contract instance for the CUSD ERC20 token contract
-    const contract = new Contract(cusdContractAddress, erc20Abi, signer );
+    // // Create a contract instance for the CUSD ERC20 token contract
+    // const contract = new Contract(cusdContractAddress, erc20Abi, signer );
 
-    // Create the transaction data for the transfer
-    const txData = await contract.populateTransaction.transfer(
-      VortexAddress,
-      parseEther(amount)
-    );
+    // // Create the transaction data for the transfer
+    // const txData = await contract.populateTransaction.transfer(
+    //   VortexAddress,
+    //   parseEther(amount)
+    // );
 
-    // Sign the transaction (this does not send it, just signs it)
-    console.log("its reaching here",txData)
-    const unsignedTx = {
-        ...txData,
-        from: await signer.getAddress(), // Add `from` field for signing
-        nonce: await provider.getTransactionCount(await signer.getAddress()),
-        gasLimit: await provider.estimateGas(txData),
-        gasPrice: await provider.getGasPrice(),
-        chainId: (await provider.getNetwork()).chainId,
-      };
-    const signedTx = await signer.signTransaction(unsignedTx);
+    // // Sign the transaction (this does not send it, just signs it)
+    // console.log("its reaching here",txData)
+    // const unsignedTx = {
+    //     ...txData,
+    //     from: await signer.getAddress(), // Add `from` field for signing
+    //     nonce: await provider.getTransactionCount(await signer.getAddress()),
+    //     gasLimit: await provider.estimateGas(txData),
+    //     gasPrice: await provider.getGasPrice(),
+    //     chainId: (await provider.getNetwork()).chainId,
+    //   };
+    // const signedTx = await signer.signTransaction(unsignedTx);
 
-    console.log("Signed Transaction:", signedTx); // This is the signature hash
+    // console.log("Signed Transaction:", signedTx); // This is the signature hash
 
-    return signedTx; // Return the signed transaction (signature hash)
+   // return signedTx; // Return the signed transaction (signature hash)
+   return signer
   } catch (err) {
     console.error("Error signing transaction:", err);
     throw `${err}${signer}`;
