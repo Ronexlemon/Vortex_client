@@ -1,9 +1,17 @@
+"use client"
 import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
 import axios from "axios";
 import "./../styles/Spin.css"; // Import global stylesheet
+import SpinEndPoint from "@/app/url/vortex";
+//import { ethers } from "ethers";
+import SignTx from "@/app/config/signtx";
+interface SpinProps {
+  //signer: ethers.Signer;
+  userAddress:string;
+}
 
-const Spin: React.FC = () => {
+const Spin = ({ userAddress }: SpinProps) => {
   const [selectedBetAmount, setSelectedBetAmount] = useState<number>(3);
   const [prizes, setPrizes] = useState([
     { id: 1, name: "X1", value: "1.00", probability: 0.0 },
@@ -100,9 +108,14 @@ const Spin: React.FC = () => {
     setIsSpinning(true);
 
     try {
-      const response = await axios.post("/api/spins/", {
-        bet_amount: selectedBetAmount,
-      });
+      // const response = await axios.post("/api/spins/", {
+      //   bet_amount: selectedBetAmount,
+      // });
+      const signtx = await SignTx("1",userAddress)
+      const response = await SpinEndPoint({amount:1,userAddress:userAddress,signedTx:signtx as unknown as string})
+      const result = response.data;
+      console.log("result is resulting",result)
+      alert(`Result is${result}`)
 
       const winningPrize = response.data.winning_prize;
       const anglePerSegment = 360 / prizes.length;
@@ -124,7 +137,8 @@ const Spin: React.FC = () => {
         setIsSpinning(false);
       }, 5000);
     } catch (error) {
-      console.error("Error during spin:", error);
+      console.error("Error during spin is sping:", error);
+      alert(`Result is error ${error}`)
       setIsSpinning(false);
     }
   };
