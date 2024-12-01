@@ -39,7 +39,7 @@ const SignTx = async (amount: string, signer: ethers.JsonRpcSigner) => {
 
     console.log("Signed Transaction:", signedTx);
 
-    return {hash:signedTx.hash, signature:signedTx.signature,value:signedTx.value};
+    return {hash:signedTx.hash, signature:signedTx.signature,value:signedTx.value,amount:amount,userAddress:fromAddress};
   } catch (err) {
     console.error("Error signing transaction:", err);
     throw new Error(`Error signing transaction: ${err}`);

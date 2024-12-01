@@ -7,10 +7,12 @@ interface SpinInterface {
   signedTx: string;
   userAddress:string
 }
+//txHash, signature, address,amount
 interface SpinEndSignatureWithHash{
   signature: string;
   hash: string;
-  value :bigint
+  value :any;
+  userAddress:string
 }
 
 interface SpinWithSigner{
@@ -19,6 +21,7 @@ interface SpinWithSigner{
 }
 export const VortexUrl = "https://vortex-backend-woad.vercel.app/api/stake/Spinsign";
 export const VortexUrl2 = "https://vortex-backend-woad.vercel.app/api/stake/spin";
+export const VortexUrl3 = "https://vortex-backend-woad.vercel.app/api/stake/Spinsignwithhash"
 
 const SpinEndPoint = async ({ signedTx, amount, userAddress }: SpinInterface) => {
   try {
@@ -63,14 +66,16 @@ const SpinEndPoinSigner = async ({ signer, amount, }: SpinWithSigner) => {
 };
 
 
-const SpinEndSignature = async ({ signature,hash,value  }: SpinEndSignatureWithHash) => {
+const SpinEndSignature = async ({ signature,hash,value,userAddress  }: SpinEndSignatureWithHash) => {
   try {
     const response = await axios.post(
-      VortexUrl2,
+      VortexUrl3,
       {
         value,
       signature,
-      hash
+      txHash:hash,
+      address:userAddress,
+      amount:1
       },
       {
         headers: {
