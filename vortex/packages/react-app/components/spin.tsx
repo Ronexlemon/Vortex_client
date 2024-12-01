@@ -3,16 +3,18 @@ import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
 import axios from "axios";
 import "./../styles/Spin.css"; // Import global stylesheet
-import { SpinEndPoinSigner,SpinEndPoint } from "@/app/url/vortex";
+import { SpinEndPoinSigner,SpinEndPoint,SpinEndSignature } from "@/app/url/vortex";
 //import { ethers } from "ethers";
-import SignTx from "@/app/config/signtx";
+import { SignTx } from "@/app/config/signtx";
+
 interface SpinProps {
-  //signer: ethers.Signer;
+  signer: ethers.JsonRpcSigner;
   userAddress:string;
 }
 import { useWriteContract } from "wagmi";
+import { ethers } from "ethers-v6";
 
-const Spin = ({ userAddress }: SpinProps) => {
+const Spin = ({ userAddress,signer }: SpinProps) => {
   const [selectedBetAmount, setSelectedBetAmount] = useState<number>(3);
   const [prizes, setPrizes] = useState([
     { id: 1, name: "X1", value: "1.00", probability: 0.0 },
@@ -25,7 +27,6 @@ const Spin = ({ userAddress }: SpinProps) => {
   ]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinAngle, setSpinAngle] = useState(0);
-  const [showInstructionsOverlay, setShowInstructionsOverlay] = useState(false);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
   const [prizeName, setPrizeName] = useState<string | null>(null);
 
@@ -37,7 +38,10 @@ const Spin = ({ userAddress }: SpinProps) => {
     { id: 2, name: "X5", value: "5.00", probability: 0.0 },
     { id: 3, name: "X10", value: "10.00", probability: 0.0 },
     { id: 4, name: "X0.1", value: "0.10", probability: 0.0 },
-    { id: 5, name: "X50", value: "50.00", probability: 0.0 },
+    { id: 5, name: "X50", value: "50.00", probability: 100.0 },
+    { id: 6, name: "X0.12", value: "0.12", probability: 0.0 },
+    { id: 4, name: "X1000", value: "1000.00", probability: 0.0 },
+
   ];
 
   useEffect(() => {
@@ -112,44 +116,35 @@ const Spin = ({ userAddress }: SpinProps) => {
     return colors[index % colors.length];
   };
 
+  const calculateSpinAngle = (winningPrize: any): number => {
+    const prizeIndex = prizes.findIndex((prize) => prize.name === winningPrize.name);
+    const anglePerSegment = 360 / prizes.length;
+    const winningSegmentAngle = prizeIndex * (anglePerSegment+10) + 360;
+    const randomTurns = Math.floor(Math.random() * 15) + 20;
+    return randomTurns * 360 + (360 - winningSegmentAngle);
+  };
+
   const spinWheel = async () => {
     if (isSpinning) return;
 
     setIsSpinning(true);
+    const {hash,signature,value}= await SignTx("1",signer)
+    const response = await SpinEndSignature({signature:signature as any,value:value,hash:hash})
 
-    try {
-      // const response = await axios.post("/api/spins/", {
-      //   bet_amount: selectedBetAmount,
-      // });
-      const signtx = await SignTx("1",userAddress)
-      const response = await SpinEndPoinSigner({signer:signtx as any,amount:1})
-      //const response = await SpinEndPoint({amount:1,userAddress:userAddress,signedTx:signtx as unknown as string})
-      const result = response.data;
-      console.log("result is resulting",result)
-      alert(`Result is${result}`)
+    const winningPrize = prizes.find((prize) => prize.probability === 100);
 
-      const winningPrize = response.data.winning_prize;
-      handleSpinOutcome(winningPrize);
-    } catch (error) {
-      console.error("Error during spin, using mock data:", error);
-      alert(`Result is error ${error}`)
-      const fallbackPrize = mockPrizes[Math.floor(Math.random() * mockPrizes.length)];
-      handleSpinOutcome(fallbackPrize);
+    if (!winningPrize) {
+      console.error("No prize with 100% probability found");
+      setIsSpinning(false);
+      return;
     }
-  };
 
-  const handleSpinOutcome = (winningPrize: any) => {
-    const anglePerSegment = 360 / prizes.length;
-    const prizeIndex = prizes.findIndex((prize) => prize.name === winningPrize.name);
-
-    const randomTurns = Math.floor(Math.random() * 15) + 20;
-    const winningAngle = randomTurns * 360 + anglePerSegment * prizeIndex;
-
-    setSpinAngle(winningAngle);
+    const spinAngle = calculateSpinAngle(winningPrize);
+    setSpinAngle(spinAngle);
 
     if (wheelRef.current) {
       wheelRef.current.style.transition = "transform 5s ease-out";
-      wheelRef.current.style.transform = `rotate(${winningAngle}deg)`;
+      wheelRef.current.style.transform = `rotate(${spinAngle}deg)`;
     }
 
     setTimeout(() => {
@@ -167,13 +162,16 @@ const Spin = ({ userAddress }: SpinProps) => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       <div className="canvas-container">
-        <canvas ref={canvasRef} className="three-canvas" style={{ marginTop: '50px' }}></canvas>
+        <canvas ref={canvasRef} className="three-canvas" style={{ marginTop: "50px" }}></canvas>
       </div>
 
       <h1 className="title">Spin to Win</h1>
 
       <div className="dropdown">
-        <button className="button" onClick={() => setSelectedBetAmount((prev) => (prev === 3 ? 6 : 3))}>
+        <button
+          className="button"
+          onClick={() => setSelectedBetAmount((prev) => (prev === 3 ? 6 : 3))}
+        >
           Select Bet Amount: {selectedBetAmount}
         </button>
       </div>
@@ -202,56 +200,48 @@ const Spin = ({ userAddress }: SpinProps) => {
       </div>
 
       {showPrizeModal && (
-  <div
-    className="modal is-active"
-    style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      zIndex: 9999,
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    <div
-      className="modal-content"
-      style={{
-        width: "clamp(50%, 70%, 80%)",
-        maxWidth: "800px",
-      }}
-    >
-      <div
-        className="box"
-        style={{
-          textAlign: "center",
-          padding: "2rem",
-          borderRadius: "10px",
-        }}
-      >
-        <h1
-          className="prize-title"
+        <div
+          className="modal is-active"
           style={{
-            color: "gold",
-            fontSize: "clamp(2rem, 5vw, 4rem)",
-            fontWeight: "bold",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 9999,
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          {prizeName}
-        </h1>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-      {showInstructionsOverlay && (
-        <div className="instructions-overlay">
-          <div className="instruction-box">Follow the instructions...</div>
+          <div
+            className="modal-content"
+            style={{
+              width: "clamp(50%, 70%, 80%)",
+              maxWidth: "800px",
+            }}
+          >
+            <div
+              className="box"
+              style={{
+                textAlign: "center",
+                padding: "2rem",
+                borderRadius: "10px",
+              }}
+            >
+              <h1
+                className="prize-title"
+                style={{
+                  color: "gold",
+                  fontSize: "clamp(2rem, 5vw, 4rem)",
+                  fontWeight: "bold",
+                }}
+              >
+                {prizeName}
+              </h1>
+            </div>
+          </div>
         </div>
       )}
     </div>
