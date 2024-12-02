@@ -13,6 +13,11 @@ interface SpinProps {
 }
 import { useWriteContract } from "wagmi";
 import { ethers } from "ethers-v6";
+interface SpinProb {
+  value: number;
+  probability: number;
+}
+
 
 const Spin = ({ userAddress,signer }: SpinProps) => {
   const [selectedBetAmount, setSelectedBetAmount] = useState<number>(3);
@@ -45,17 +50,17 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
   ];
 
   useEffect(() => {
-    const fetchPrizes = async () => {
-      try {
-        const response = await axios.get("/api/prizes/");
-        setPrizes(response.data);
-      } catch (error) {
-        console.error("Error fetching prizes, using mock data:", error);
-        setPrizes(mockPrizes);
-      }
-    };
+    // const fetchPrizes = async () => {
+    //   try {
+    //     const response = await axios.get("/api/prizes/");
+    //     setPrizes(response.data);
+    //   } catch (error) {
+    //     console.error("Error fetching prizes, using mock data:", error);
+    //     setPrizes(mockPrizes);
+    //   }
+    // };
 
-    fetchPrizes();
+    //fetchPrizes();
     initThreeJS();
   }, []);
 
@@ -117,7 +122,7 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
   };
 
   const calculateSpinAngle = (winningPrize: any): number => {
-    const prizeIndex = prizes.findIndex((prize) => prize.name === winningPrize.name);
+    const prizeIndex = prizes.findIndex((prize) => prize.name === winningPrize);
     const anglePerSegment = 360 / prizes.length;
     const winningSegmentAngle = prizeIndex * (anglePerSegment+10) + 360;
     const randomTurns = Math.floor(Math.random() * 15) + 20;
@@ -129,18 +134,18 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
 
     setIsSpinning(true);
     const {hash,signature,value,userAddress}= await SignTx("1",signer)
-    const response = await SpinEndSignature({signature:signature as any,value: 1,hash:hash,userAddress:userAddress})
-    console.log("respinse", response)
+    const response = await SpinEndSignature({value: "1",hash:hash,userAddress:userAddress})
+    console.log("respinses", response.data)
 
     const winningPrize = prizes.find((prize) => prize.probability === 100);
 
-    if (!winningPrize) {
+    if (!response.data) {
       console.error("No prize with 100% probability found");
       setIsSpinning(false);
       return;
     }
 
-    const spinAngle = calculateSpinAngle(winningPrize);
+    const spinAngle = calculateSpinAngle(`X${response.data.value}`);
     setSpinAngle(spinAngle);
 
     if (wheelRef.current) {
@@ -149,15 +154,10 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
     }
 
     setTimeout(() => {
-      setPrizeName(winningPrize.name);
+      setPrizeName(`X${response.data.value}`);
       setShowPrizeModal(true);
-
-      setTimeout(() => {
-        setPrizeName(winningPrize.name);
-        setShowPrizeModal(true);
-        setIsSpinning(false);
-      }, 5000);
-    } )
+      setIsSpinning(false);      
+    },10000 )
   }
 
   return (

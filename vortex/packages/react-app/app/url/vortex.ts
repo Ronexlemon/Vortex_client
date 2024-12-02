@@ -9,9 +9,9 @@ interface SpinInterface {
 }
 //txHash, signature, address,amount
 interface SpinEndSignatureWithHash{
-  signature: string;
+ 
   hash: string;
-  value :any;
+  value :string;
   userAddress:string
 }
 
@@ -66,16 +66,16 @@ const SpinEndPoinSigner = async ({ signer, amount, }: SpinWithSigner) => {
 };
 
 
-const SpinEndSignature = async ({ signature,hash,value,userAddress  }: SpinEndSignatureWithHash) => {
+const SpinEndSignature = async ({ hash,value,userAddress  }: SpinEndSignatureWithHash) => {
   try {
     const response = await axios.post(
       VortexUrl3,
       {
-        value,
-      signature,
+        // value,
+     
       txHash:hash,
       address:userAddress,
-      amount:1
+      amount:"1"
       },
       {
         headers: {
