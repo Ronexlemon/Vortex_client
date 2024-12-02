@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ethers } from "ethers-v6";
+import { ethers } from "ethers";
 //import { ethers } from "ethers";
 
 interface SpinInterface {

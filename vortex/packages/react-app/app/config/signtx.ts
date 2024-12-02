@@ -1,5 +1,5 @@
-import { Contract, ethers } from "ethers-v6";
-import { parseEther } from "ethers-v6";
+import { Contract, ethers } from "ethers";
+import { parseEther } from "ethers";
 import erc20Abi from "../abi/erc20.json"; // Ensure ABI is correct
 import { cusdContractAddress, VortexAddress } from "./signer";
 

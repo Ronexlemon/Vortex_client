@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Spin from "@/components/spin";
 //import { ethers } from "ethers";
 import { useAccount,usePublicClient } from "wagmi";
-import { ethers } from "ethers-v6";
+import { ethers } from "ethers";
 //import {useSigner} from "wagmi"
 
 export default function Home() {

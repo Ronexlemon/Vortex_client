@@ -12,7 +12,7 @@ interface SpinProps {
   userAddress:string;
 }
 import { useWriteContract } from "wagmi";
-import { ethers } from "ethers-v6";
+import { ethers } from "ethers";
 interface SpinProb {
   value: number;
   probability: number;
