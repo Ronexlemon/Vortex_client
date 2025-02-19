@@ -18,7 +18,6 @@ interface SpinProb {
   probability: number;
 }
 
-
 const Spin = ({ userAddress,signer }: SpinProps) => {
   const [selectedBetAmount, setSelectedBetAmount] = useState<number>(3);
   const [prizes, setPrizes] = useState([
@@ -34,9 +33,10 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
   const [spinAngle, setSpinAngle] = useState(0);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
   const [prizeName, setPrizeName] = useState<string | null>(null);
-
+  
   const wheelRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const mockPrizes = [
     { id: 1, name: "X2", value: "2.00", probability: 0.0 },
@@ -46,7 +46,6 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
     { id: 5, name: "X50", value: "50.00", probability: 100.0 },
     { id: 6, name: "X0.12", value: "0.12", probability: 0.0 },
     { id: 4, name: "X1000", value: "1000.00", probability: 0.0 },
-
   ];
 
   useEffect(() => {
@@ -133,35 +132,51 @@ const Spin = ({ userAddress,signer }: SpinProps) => {
     if (isSpinning) return;
 
     setIsSpinning(true);
-    const {hash,signature,value,userAddress}= await SignTx("1",signer)
-    const response = await SpinEndSignature({value: "1",hash:hash,userAddress:userAddress})
-    console.log("respinses", response.data)
+    
+    try {
+      // Get prize response first
+      const {hash,signature,value,userAddress}= await SignTx("1",signer)
+      const response = await SpinEndSignature({value: "1",hash:hash,userAddress:userAddress})
+      
+      if (!response.data) {
+        console.error("No prize data received");
+        setIsSpinning(false);
+        return;
+      }
 
-    const winningPrize = prizes.find((prize) => prize.probability === 100);
+      // Calculate spin parameters after receiving response
+      const spinAngle = calculateSpinAngle(`X${response.data.value}`);
+      setSpinAngle(spinAngle);
 
-    if (!response.data) {
-      console.error("No prize with 100% probability found");
+      // Start audio and spin together after response
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+
+      if (wheelRef.current) {
+        wheelRef.current.style.transition = "transform 5s ease-out";
+        wheelRef.current.style.transform = `rotate(${spinAngle}deg)`;
+      }
+
+      setTimeout(() => {
+        setPrizeName(`X${response.data.value}`);
+        setShowPrizeModal(true);
+        setIsSpinning(false);
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+      }, 5000); // Match 5s spin duration
+    } catch (error) {
+      console.error("Spin error:", error);
       setIsSpinning(false);
-      return;
     }
-
-    const spinAngle = calculateSpinAngle(`X${response.data.value}`);
-    setSpinAngle(spinAngle);
-
-    if (wheelRef.current) {
-      wheelRef.current.style.transition = "transform 5s ease-out";
-      wheelRef.current.style.transform = `rotate(${spinAngle}deg)`;
-    }
-
-    setTimeout(() => {
-      setPrizeName(`X${response.data.value}`);
-      setShowPrizeModal(true);
-      setIsSpinning(false);      
-    },10000 )
   }
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
+      <audio ref={audioRef} src="/spin-sound.mp3" />
+      
       <div className="canvas-container">
         <canvas ref={canvasRef} className="three-canvas" style={{ marginTop: "50px" }}></canvas>
       </div>
